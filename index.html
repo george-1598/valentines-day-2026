@@ -61,22 +61,33 @@
 
   // REPLACE THIS FUNCTION
   const moveButton = () => {
-    const distance = 150; // minimum distance to move (pixels)
-    const maxX = window.innerWidth - noBtn.offsetWidth - 20;
-    const maxY = window.innerHeight - noBtn.offsetHeight - 20;
+  const distance = 150; // minimum jump distance
+  const maxX = window.innerWidth - noBtn.offsetWidth - 20;
+  const maxY = window.innerHeight - noBtn.offsetHeight - 20;
 
-    // Current position
-    const rect = noBtn.getBoundingClientRect();
-    let newX = rect.left + (Math.random() > 0.5 ? distance : -distance);
-    let newY = rect.top + (Math.random() > 0.5 ? distance : -distance);
+  const yesRect = yesBtn.getBoundingClientRect();
+  let newX, newY;
 
-    // Clamp to screen boundaries
-    newX = Math.max(0, Math.min(maxX, newX));
-    newY = Math.max(0, Math.min(maxY, newY));
+  do {
+    // Pick new random position
+    newX = Math.random() * maxX;
+    newY = Math.random() * maxY;
 
-    noBtn.style.left = newX + 'px';
-    noBtn.style.top = newY + 'px';
-  };
+    const noCenterX = newX + noBtn.offsetWidth / 2;
+    const noCenterY = newY + noBtn.offsetHeight / 2;
+    const yesCenterX = yesRect.left + yesRect.width / 2;
+    const yesCenterY = yesRect.top + yesRect.height / 2;
+
+    // Calculate distance between centers
+    var dx = noCenterX - yesCenterX;
+    var dy = noCenterY - yesCenterY;
+    var distanceBetween = Math.sqrt(dx*dx + dy*dy);
+
+  } while (distanceBetween < 120); // minimum distance between buttons
+
+  noBtn.style.left = newX + 'px';
+  noBtn.style.top = newY + 'px';
+};
 
   // Event listeners
   noBtn.addEventListener('mouseenter', moveButton);
