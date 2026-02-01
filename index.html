@@ -7,6 +7,7 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
+    /* --- Global styles --- */
     body {
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #ffafbd, #ffc3a0);
@@ -19,6 +20,12 @@
       justify-content: center;
       overflow: hidden;
       position: relative;
+
+      /* Disable text selection globally */
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
     }
 
     h1 {
@@ -38,6 +45,12 @@
       min-width: 120px;
       position: relative;
       z-index: 1;
+
+      /* Prevent button text selection */
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
     }
 
     #yes {
@@ -61,71 +74,67 @@
   <button id="no">No 😅</button>
 
   <script>
-  const noBtn = document.getElementById('no');
-  const yesBtn = document.getElementById('yes');
+    const noBtn = document.getElementById('no');
+    const yesBtn = document.getElementById('yes');
 
-  let noClickCount = 0;
+    let noClickCount = 0;
 
-  // Click handler for "No" button
-  noBtn.addEventListener('click', () => {
-    noClickCount++;
-    if (noClickCount % 3 === 0) {
-      // Convert number to ordinal (3 → 3rd, 6 → 6th, etc.)
-      const ordinal = (n) => {
-        const s = ["th","st","nd","rd"],
-              v = n % 100;
-        return n + (s[(v-20)%10] || s[v] || s[0]);
-      };
+    // --- Click handler for "No" button ---
+    noBtn.addEventListener('click', () => {
+      noClickCount++;
+      if (noClickCount % 3 === 0) {
+        // Convert number to ordinal (3 → 3rd, 6 → 6th, etc.)
+        const ordinal = (n) => {
+          const s = ["th","st","nd","rd"],
+                v = n % 100;
+          return n + (s[(v-20)%10] || s[v] || s[0]);
+        };
 
-      alert(`You really insisted on saying 'No'. It's not even the 1st time you pressed it, it's the ${ordinal(noClickCount)} time 😅`);
-    }
-  });
+        alert(`You really insisted on saying 'No'. It's not even the 1st time you pressed it, it's the ${ordinal(noClickCount)} time 😅`);
+      }
+    });
 
-  // ---------------------------
-  // Move "No" button randomly without overlapping "Yes"
-  const moveButton = () => {
-    const maxX = window.innerWidth - noBtn.offsetWidth - 20;
-    const maxY = window.innerHeight - noBtn.offsetHeight - 20;
+    // --- Move "No" button randomly without overlapping "Yes" ---
+    const moveButton = () => {
+      const maxX = window.innerWidth - noBtn.offsetWidth - 20;
+      const maxY = window.innerHeight - noBtn.offsetHeight - 20;
 
-    const yesRect = yesBtn.getBoundingClientRect();
-    let newX, newY;
+      const yesRect = yesBtn.getBoundingClientRect();
+      let newX, newY;
 
-    do {
-      newX = Math.random() * maxX;
-      newY = Math.random() * maxY;
+      do {
+        newX = Math.random() * maxX;
+        newY = Math.random() * maxY;
 
-      const noRect = { 
-        left: newX, 
-        right: newX + noBtn.offsetWidth, 
-        top: newY, 
-        bottom: newY + noBtn.offsetHeight 
-      };
+        const noRect = { 
+          left: newX, 
+          right: newX + noBtn.offsetWidth, 
+          top: newY, 
+          bottom: newY + noBtn.offsetHeight 
+        };
 
-      // Check overlap with Yes button + margin
-      var overlap = !(noRect.right + 10 < yesRect.left ||
-                      noRect.left - 10 > yesRect.right ||
-                      noRect.bottom + 10 < yesRect.top ||
-                      noRect.top - 10 > yesRect.bottom);
-    } while (overlap);
+        // Check overlap with Yes button + margin
+        var overlap = !(noRect.right + 10 < yesRect.left ||
+                        noRect.left - 10 > yesRect.right ||
+                        noRect.bottom + 10 < yesRect.top ||
+                        noRect.top - 10 > yesRect.bottom);
+      } while (overlap);
 
-    noBtn.style.left = newX + 'px';
-    noBtn.style.top = newY + 'px';
-  };
+      noBtn.style.left = newX + 'px';
+      noBtn.style.top = newY + 'px';
+    };
 
-  // ---------------------------
-  // Move "No" button continuously every 300ms
-  setInterval(moveButton, 300);
+    // --- Move "No" button continuously ---
+    setInterval(moveButton, 300);
 
-  // ---------------------------
-  // Yes button click
-  yesBtn.addEventListener('click', () => {
-    alert("Yay! 💖 I knew you'd say yes!");
-  });
+    // --- Yes button click ---
+    yesBtn.addEventListener('click', () => {
+      alert("Yay! 💖 I knew you'd say yes!");
+    });
 
-  // ---------------------------
-  // Initial position
-  moveButton();
-  window.addEventListener('resize', moveButton);
-</script>
+    // --- Initial position ---
+    moveButton();
+    window.addEventListener('resize', moveButton);
+  </script>
 </body>
 </html>
