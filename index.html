@@ -154,25 +154,44 @@
     envelope.addEventListener('click', () => {
       logEvent("envelope_clicked");
 
-      // Create a heart element
-      const heart = document.createElement('div');
-      heart.textContent = '💖';
-      heart.style.position = 'absolute';
-      heart.style.left = Math.random() * window.innerWidth + 'px';
-      heart.style.top = window.innerHeight + 'px';
-      heart.style.fontSize = (20 + Math.random()*30) + 'px';
-      heart.style.pointerEvents = 'none';
-      heart.style.transition = 'transform 2s ease-out, opacity 2s ease-out';
-      document.body.appendChild(heart);
+      // Bounce animation
+      envelope.style.transition = 'transform 0.15s';
+      envelope.style.transform = 'rotate(20deg)';
+      setTimeout(() => {
+        envelope.style.transform = 'rotate(-20deg)';
+        setTimeout(() => envelope.style.transform = 'rotate(0deg)', 150);
+      }, 150);
 
-      // Trigger animation
-      requestAnimationFrame(() => {
-        heart.style.transform = `translateY(-${window.innerHeight + 50}px)`;
-        heart.style.opacity = 0;
-      });
+      // Pulse color
+      envelope.style.transition = 'color 0.3s';
+      envelope.style.color = '#ffea00';
+      setTimeout(() => envelope.style.color = '#ff1a75', 300);
 
-      // Remove heart after animation
-      setTimeout(() => heart.remove(), 2000);
+      // Spawn floating hearts
+      for (let i = 0; i < 5; i++) {
+        const heart = document.createElement('div');
+        heart.textContent = '💖';
+        heart.style.position = 'absolute';
+        const hX = envelope.getBoundingClientRect().left + Math.random() * envelope.offsetWidth;
+        heart.style.left = hX + 'px';
+        heart.style.top = (envelope.getBoundingClientRect().bottom) + 'px';
+        heart.style.fontSize = '24px';
+        heart.style.pointerEvents = 'none';
+        document.body.appendChild(heart);
+
+        let y = parseInt(heart.style.top);
+        let x = parseInt(heart.style.left);
+        const floatUp = setInterval(() => {
+          y -= 2 + Math.random();
+          x += (Math.random() - 0.5) * 2;
+          heart.style.top = y + 'px';
+          heart.style.left = x + 'px';
+          if (y < -30) {
+            clearInterval(floatUp);
+            heart.remove();
+          }
+        }, 16);
+      }
     });
 
     // --- Move "No" button ---
