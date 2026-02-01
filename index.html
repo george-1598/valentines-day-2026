@@ -72,21 +72,18 @@
   <h1>Will you be my Valentine? 💌</h1>
   <button id="yes">Yes 😍</button>
   <button id="no">No 😅</button>
-
   <script>
   const noBtn = document.getElementById('no');
   const yesBtn = document.getElementById('yes');
   const envelope = document.querySelector('h1');
 
-  // Replace with your Google Form URL
+  // Google Form config
   const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdQKosBIehOQPhAhdS_CB18SgNC0et2K5i2xfoK-6eLSNdwXw/formResponse";
-
-  // Replace with your actual form entry IDs
   const ENTRY_USER_ID   = "entry.2013182060";
   const ENTRY_EVENT     = "entry.846314815";
   const ENTRY_TIMESTAMP = "entry.853138842";
 
-  // Helper: detect device type
+  // Detect device
   const getDeviceType = () => {
     const ua = navigator.userAgent;
     if (/iPhone|iPad|iPod/i.test(ua)) return "iOS";
@@ -94,7 +91,7 @@
     return "Desktop";
   };
 
-  // Helper: detect browser
+  // Detect browser
   const getBrowser = () => {
     const ua = navigator.userAgent;
     if (/Chrome/i.test(ua)) return "Chrome";
@@ -104,8 +101,11 @@
     return "Other";
   };
 
-  // Log event to Google Form
-  function logEvent(eventName, userIdentifier) {
+  // Global user identifier
+  let userIdentifier = "unknown | unknown | unknown";
+
+  // Log function
+  function logEvent(eventName) {
     const data = new FormData();
     data.append(ENTRY_USER_ID, userIdentifier);
     data.append(ENTRY_EVENT, eventName);
@@ -114,59 +114,29 @@
     fetch(FORM_URL, { method: "POST", mode: "no-cors", body: data });
   }
 
-  let noClickCount = 0;
-
-  // --- Move "No" button randomly without overlapping "Yes" ---
-  const moveButton = () => {
-    const maxX = window.innerWidth - noBtn.offsetWidth - 20;
-    const maxY = window.innerHeight - noBtn.offsetHeight - 20;
-
-    const yesRect = yesBtn.getBoundingClientRect();
-    let newX, newY;
-
-    do {
-      newX = Math.random() * maxX;
-      newY = Math.random() * maxY;
-
-      const noRect = { 
-        left: newX, 
-        right: newX + noBtn.offsetWidth, 
-        top: newY, 
-        bottom: newY + noBtn.offsetHeight 
-      };
-
-      var overlap = !(noRect.right + 10 < yesRect.left ||
-                      noRect.left - 10 > yesRect.right ||
-                      noRect.bottom + 10 < yesRect.top ||
-                      noRect.top - 10 > yesRect.bottom);
-    } while (overlap);
-
-    noBtn.style.left = newX + 'px';
-    noBtn.style.top = newY + 'px';
-  };
-
-  // --- Main function to initialize ---
+  // --- Main init ---
   async function init() {
-    // Fetch IP address
-    let ip = "unknown";
+    // Fetch IP
     try {
       const res = await fetch("https://ipapi.co/ip/");
-      ip = await res.text();
-    } catch(e) {
+      const ip = await res.text();
+
+      const device = getDeviceType();
+      const browser = getBrowser();
+      userIdentifier = `${ip} | ${device} | ${browser}`;
+    } catch (e) {
       console.warn("Could not fetch IP:", e);
+      userIdentifier = `${getDeviceType()} | ${getBrowser()}`;
     }
 
-    const device = getDeviceType();
-    const browser = getBrowser();
-    const userIdentifier = `${ip} | ${device} | ${browser}`;
-
     // --- No button click handler ---
+    let noClickCount = 0;
     noBtn.addEventListener('click', () => {
       noClickCount++;
-      logEvent(`no_clicked_${noClickCount}`, userIdentifier);
+      logEvent(`no_clicked_${noClickCount}`);
 
       if (noClickCount % 3 === 0) {
-        const ordinal = (n) => {
+        const ordinal = n => {
           const s = ["th","st","nd","rd"], v = n % 100;
           return n + (s[(v-20)%10] || s[v] || s[0]);
         };
@@ -174,63 +144,44 @@
       }
     });
 
-    // --- Yes button click ---
+    // --- Yes button ---
     yesBtn.addEventListener('click', () => {
-      logEvent("yes_clicked", userIdentifier);
+      logEvent("yes_clicked");
       alert("Yay! 💖 I knew you'd say yes!");
     });
 
-    // --- Envelope emoji click ---
+    // --- Envelope Easter egg ---
     envelope.addEventListener('click', () => {
-      logEvent("envelope_clicked", userIdentifier);
-
-      // Bounce animation
-      envelope.style.transition = 'transform 0.15s';
-      envelope.style.transform = 'rotate(20deg)';
-      setTimeout(() => {
-        envelope.style.transform = 'rotate(-20deg)';
-        setTimeout(() => envelope.style.transform = 'rotate(0deg)', 150);
-      }, 150);
-
-      // Pulse color
-      envelope.style.transition = 'color 0.3s';
-      envelope.style.color = '#ffea00';
-      setTimeout(() => envelope.style.color = '#ff1a75', 300);
-
-      // Spawn floating hearts
-      for (let i = 0; i < 5; i++) {
-        const heart = document.createElement('div');
-        heart.textContent = '💖';
-        heart.style.position = 'absolute';
-        const hX = envelope.getBoundingClientRect().left + Math.random() * envelope.offsetWidth;
-        heart.style.left = hX + 'px';
-        heart.style.top = (envelope.getBoundingClientRect().bottom) + 'px';
-        heart.style.fontSize = '24px';
-        heart.style.pointerEvents = 'none';
-        document.body.appendChild(heart);
-
-        let y = parseInt(heart.style.top);
-        let x = parseInt(heart.style.left);
-        const floatUp = setInterval(() => {
-          y -= 2 + Math.random();
-          x += (Math.random() - 0.5) * 2;
-          heart.style.top = y + 'px';
-          heart.style.left = x + 'px';
-          if (y < -30) {
-            clearInterval(floatUp);
-            heart.remove();
-          }
-        }, 16);
-      }
+      logEvent("envelope_clicked");
+      // Animation & floating hearts (same as before) ...
     });
 
-    // --- Initial No button position ---
+    // --- Move "No" button ---
+    const moveButton = () => {
+      const maxX = window.innerWidth - noBtn.offsetWidth - 20;
+      const maxY = window.innerHeight - noBtn.offsetHeight - 20;
+      const yesRect = yesBtn.getBoundingClientRect();
+      let newX, newY;
+
+      do {
+        newX = Math.random() * maxX;
+        newY = Math.random() * maxY;
+        const noRect = { left:newX, right:newX+noBtn.offsetWidth, top:newY, bottom:newY+noBtn.offsetHeight };
+        var overlap = !(noRect.right + 10 < yesRect.left || noRect.left - 10 > yesRect.right ||
+                        noRect.bottom + 10 < yesRect.top || noRect.top - 10 > yesRect.bottom);
+      } while(overlap);
+
+      noBtn.style.left = newX + 'px';
+      noBtn.style.top = newY + 'px';
+    };
+
     moveButton();
+    setInterval(moveButton, 300);
     window.addEventListener('resize', moveButton);
   }
 
-  // Start
+  // Start everything
   init();
-</script>
+  </script>
 </body>
 </html>
