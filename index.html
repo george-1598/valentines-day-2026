@@ -18,6 +18,7 @@
       flex-direction: column;
       justify-content: center;
       overflow: hidden;
+      position: relative;
     }
 
     h1 {
@@ -35,18 +36,22 @@
       cursor: pointer;
       transition: all 0.2s ease;
       min-width: 120px;
+      position: relative;
+      z-index: 1;
     }
 
     #yes {
       background-color: #ff1a75;
       color: white;
+      position: relative;
+      z-index: 2;
     }
 
     #no {
       background-color: #555;
       color: white;
       position: absolute;
-      touch-action: none; /* Helps on mobile */
+      z-index: 1;
     }
   </style>
 </head>
@@ -56,76 +61,55 @@
   <button id="no">No 😅</button>
 
   <script>
-  const noBtn = document.getElementById('no');
-  const yesBtn = document.getElementById('yes');
+    const noBtn = document.getElementById('no');
+    const yesBtn = document.getElementById('yes');
 
-  // ---------------------------
-  // Function to move "No" button randomly (far jump + avoids "Yes")
-  const moveButton = () => {
-    const distance = 150; // minimum jump distance
-    const maxX = window.innerWidth - noBtn.offsetWidth - 20;
-    const maxY = window.innerHeight - noBtn.offsetHeight - 20;
+    // ---------------------------
+    // Move "No" button randomly without overlapping "Yes"
+    const moveButton = () => {
+      const maxX = window.innerWidth - noBtn.offsetWidth - 20;
+      const maxY = window.innerHeight - noBtn.offsetHeight - 20;
 
-    const yesRect = yesBtn.getBoundingClientRect();
-    let newX, newY;
+      const yesRect = yesBtn.getBoundingClientRect();
+      let newX, newY;
 
-    do {
-      newX = Math.random() * maxX;
-      newY = Math.random() * maxY;
+      do {
+        newX = Math.random() * maxX;
+        newY = Math.random() * maxY;
 
-      const noCenterX = newX + noBtn.offsetWidth / 2;
-      const noCenterY = newY + noBtn.offsetHeight / 2;
-      const yesCenterX = yesRect.left + yesRect.width / 2;
-      const yesCenterY = yesRect.top + yesRect.height / 2;
+        const noRect = { 
+          left: newX, 
+          right: newX + noBtn.offsetWidth, 
+          top: newY, 
+          bottom: newY + noBtn.offsetHeight 
+        };
 
-      const dx = noCenterX - yesCenterX;
-      const dy = noCenterY - yesCenterY;
-      var distanceBetween = Math.sqrt(dx*dx + dy*dy);
+        // Check if "No" overlaps "Yes" including button margins
+        var overlap = !(noRect.right + 10 < yesRect.left || // right margin
+                        noRect.left - 10 > yesRect.right || // left margin
+                        noRect.bottom + 10 < yesRect.top || // bottom margin
+                        noRect.top - 10 > yesRect.bottom); // top margin
 
-    } while (distanceBetween < 120); // minimum distance from "Yes"
+      } while (overlap);
 
-    noBtn.style.left = newX + 'px';
-    noBtn.style.top = newY + 'px';
-  };
+      noBtn.style.left = newX + 'px';
+      noBtn.style.top = newY + 'px';
+    };
 
-  // ---------------------------
-  // Events for mouse hover and touch
-  noBtn.addEventListener('mouseenter', moveButton);
-  noBtn.addEventListener('touchstart', moveButton);
+    // ---------------------------
+    // Move "No" button continuously
+    setInterval(moveButton, 300); // every 300ms
 
-  // ---------------------------
-  // Yes button click
-  yesBtn.addEventListener('click', () => {
-    alert("Yay! 💖 I knew you'd say yes!");
-  });
-
-  // ---------------------------
-  // Initial random position
-  moveButton();
-  window.addEventListener('resize', moveButton);
-
-  // ---------------------------
-  // Tilt-based movement for mobile
-  if (window.DeviceOrientationEvent) {
-    window.addEventListener('deviceorientation', (event) => {
-      const tiltX = event.gamma; // left/right
-      const tiltY = event.beta;  // forward/back
-
-      if (tiltX !== null && tiltY !== null) {
-        const maxX = window.innerWidth - noBtn.offsetWidth - 20;
-        const maxY = window.innerHeight - noBtn.offsetHeight - 20;
-
-        const centerX = maxX / 2;
-        const centerY = maxY / 2;
-
-        const moveX = centerX + (tiltX / 90) * centerX;
-        const moveY = centerY + (tiltY / 180) * centerY;
-
-        noBtn.style.left = Math.min(Math.max(0, moveX), maxX) + 'px';
-        noBtn.style.top = Math.min(Math.max(0, moveY), maxY) + 'px';
-      }
+    // ---------------------------
+    // Yes button click
+    yesBtn.addEventListener('click', () => {
+      alert("Yay! 💖 I knew you'd say yes!");
     });
-  }
-</script>
+
+    // ---------------------------
+    // Initial position
+    moveButton();
+    window.addEventListener('resize', moveButton);
+  </script>
 </body>
 </html>
