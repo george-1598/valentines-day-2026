@@ -78,46 +78,43 @@
   const yesBtn = document.getElementById('yes');
   const envelope = document.querySelector('h1');
 
-  // Generate a unique session/user ID
-  const userId = Math.random().toString(36).substr(2, 8);
-
   // Replace with your Google Form URL
   const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdQKosBIehOQPhAhdS_CB18SgNC0et2K5i2xfoK-6eLSNdwXw/formResponse";
 
+  // Replace with your actual form entry IDs
   const ENTRY_USER_ID   = "entry.2013182060";
   const ENTRY_EVENT     = "entry.846314815";
   const ENTRY_TIMESTAMP = "entry.853138842";
 
-  // Function to log events to Google Form
-  function logEvent(eventName) {
+  // Helper: detect device type
+  const getDeviceType = () => {
+    const ua = navigator.userAgent;
+    if (/iPhone|iPad|iPod/i.test(ua)) return "iOS";
+    if (/Android/i.test(ua)) return "Android";
+    return "Desktop";
+  };
+
+  // Helper: detect browser
+  const getBrowser = () => {
+    const ua = navigator.userAgent;
+    if (/Chrome/i.test(ua)) return "Chrome";
+    if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) return "Safari";
+    if (/Firefox/i.test(ua)) return "Firefox";
+    if (/Edge/i.test(ua)) return "Edge";
+    return "Other";
+  };
+
+  // Log event to Google Form
+  function logEvent(eventName, userIdentifier) {
     const data = new FormData();
-    data.append(ENTRY_USER_ID, userId);
+    data.append(ENTRY_USER_ID, userIdentifier);
     data.append(ENTRY_EVENT, eventName);
     data.append(ENTRY_TIMESTAMP, new Date().toISOString());
 
-    fetch(FORM_URL, {
-      method: "POST",
-      mode: "no-cors",
-      body: data
-    });
+    fetch(FORM_URL, { method: "POST", mode: "no-cors", body: data });
   }
 
   let noClickCount = 0;
-
-  // --- No button click handler ---
-  noBtn.addEventListener('click', () => {
-    noClickCount++;
-    logEvent(`no_clicked_${noClickCount}`);
-
-    if (noClickCount % 3 === 0) {
-      const ordinal = (n) => {
-        const s = ["th","st","nd","rd"],
-              v = n % 100;
-        return n + (s[(v-20)%10] || s[v] || s[0]);
-      };
-      alert(`You really insisted on saying 'No'. It's not even the 1st time you pressed it, it's the ${ordinal(noClickCount)} time 😅`);
-    }
-  });
 
   // --- Move "No" button randomly without overlapping "Yes" ---
   const moveButton = () => {
@@ -148,62 +145,92 @@
     noBtn.style.top = newY + 'px';
   };
 
-  // --- Move "No" button continuously ---
-  setInterval(moveButton, 300);
-
-  // --- Yes button click ---
-  yesBtn.addEventListener('click', () => {
-    logEvent("yes_clicked");
-    alert("Yay! 💖 I knew you'd say yes!");
-  });
-
-  // --- Initial position ---
-  moveButton();
-  window.addEventListener('resize', moveButton);
-
-  // --- Envelope emoji click Easter egg ---
-  envelope.addEventListener('click', () => {
-    logEvent("envelope_clicked");
-
-    // Bounce animation
-    envelope.style.transition = 'transform 0.15s';
-    envelope.style.transform = 'rotate(20deg)';
-    setTimeout(() => {
-      envelope.style.transform = 'rotate(-20deg)';
-      setTimeout(() => envelope.style.transform = 'rotate(0deg)', 150);
-    }, 150);
-
-    // Pulse color
-    envelope.style.transition = 'color 0.3s';
-    envelope.style.color = '#ffea00';
-    setTimeout(() => envelope.style.color = '#ff1a75', 300);
-
-    // Spawn floating hearts
-    for (let i = 0; i < 5; i++) {
-      const heart = document.createElement('div');
-      heart.textContent = '💖';
-      heart.style.position = 'absolute';
-      const hX = envelope.getBoundingClientRect().left + Math.random() * envelope.offsetWidth;
-      heart.style.left = hX + 'px';
-      heart.style.top = (envelope.getBoundingClientRect().bottom) + 'px';
-      heart.style.fontSize = '24px';
-      heart.style.pointerEvents = 'none';
-      document.body.appendChild(heart);
-
-      let y = parseInt(heart.style.top);
-      let x = parseInt(heart.style.left);
-      const floatUp = setInterval(() => {
-        y -= 2 + Math.random();
-        x += (Math.random() - 0.5) * 2;
-        heart.style.top = y + 'px';
-        heart.style.left = x + 'px';
-        if (y < -30) {
-          clearInterval(floatUp);
-          heart.remove();
-        }
-      }, 16);
+  // --- Main function to initialize ---
+  async function init() {
+    // Fetch IP address
+    let ip = "unknown";
+    try {
+      const res = await fetch("https://ipapi.co/ip/");
+      ip = await res.text();
+    } catch(e) {
+      console.warn("Could not fetch IP:", e);
     }
-  });
+
+    const device = getDeviceType();
+    const browser = getBrowser();
+    const userIdentifier = `${ip} | ${device} | ${browser}`;
+
+    // --- No button click handler ---
+    noBtn.addEventListener('click', () => {
+      noClickCount++;
+      logEvent(`no_clicked_${noClickCount}`, userIdentifier);
+
+      if (noClickCount % 3 === 0) {
+        const ordinal = (n) => {
+          const s = ["th","st","nd","rd"], v = n % 100;
+          return n + (s[(v-20)%10] || s[v] || s[0]);
+        };
+        alert(`You really insisted on saying 'No'. It's not even the 1st time you pressed it, it's the ${ordinal(noClickCount)} time 😅`);
+      }
+    });
+
+    // --- Yes button click ---
+    yesBtn.addEventListener('click', () => {
+      logEvent("yes_clicked", userIdentifier);
+      alert("Yay! 💖 I knew you'd say yes!");
+    });
+
+    // --- Envelope emoji click ---
+    envelope.addEventListener('click', () => {
+      logEvent("envelope_clicked", userIdentifier);
+
+      // Bounce animation
+      envelope.style.transition = 'transform 0.15s';
+      envelope.style.transform = 'rotate(20deg)';
+      setTimeout(() => {
+        envelope.style.transform = 'rotate(-20deg)';
+        setTimeout(() => envelope.style.transform = 'rotate(0deg)', 150);
+      }, 150);
+
+      // Pulse color
+      envelope.style.transition = 'color 0.3s';
+      envelope.style.color = '#ffea00';
+      setTimeout(() => envelope.style.color = '#ff1a75', 300);
+
+      // Spawn floating hearts
+      for (let i = 0; i < 5; i++) {
+        const heart = document.createElement('div');
+        heart.textContent = '💖';
+        heart.style.position = 'absolute';
+        const hX = envelope.getBoundingClientRect().left + Math.random() * envelope.offsetWidth;
+        heart.style.left = hX + 'px';
+        heart.style.top = (envelope.getBoundingClientRect().bottom) + 'px';
+        heart.style.fontSize = '24px';
+        heart.style.pointerEvents = 'none';
+        document.body.appendChild(heart);
+
+        let y = parseInt(heart.style.top);
+        let x = parseInt(heart.style.left);
+        const floatUp = setInterval(() => {
+          y -= 2 + Math.random();
+          x += (Math.random() - 0.5) * 2;
+          heart.style.top = y + 'px';
+          heart.style.left = x + 'px';
+          if (y < -30) {
+            clearInterval(floatUp);
+            heart.remove();
+          }
+        }, 16);
+      }
+    });
+
+    // --- Initial No button position ---
+    moveButton();
+    window.addEventListener('resize', moveButton);
+  }
+
+  // Start
+  init();
 </script>
 </body>
 </html>
