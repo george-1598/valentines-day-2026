@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Be My Valentine</title>
+  <title>Valentine's Day</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
@@ -69,8 +69,8 @@
   </style>
 </head>
 <body>
-  <h1>Will you be my Valentine? 💌</h1>
-  <button id="yes">Yes 😍</button>
+  <h1>Will the date carry on with a surprise? 💌</h1>
+  <button id="yes">Yes 👀</button>
   <button id="no">No 😅</button>
   <script>
   const noBtn = document.getElementById('no');
@@ -147,7 +147,7 @@
     // --- Yes button ---
     yesBtn.addEventListener('click', () => {
       logEvent("yes_clicked");
-      alert("Yay! 💖 I knew you'd say yes!");
+      alert("I knew you'd say yes! 💚 Would you want to watch a movie?");
     });
 
     // --- Envelope Easter egg ---
@@ -170,7 +170,7 @@
       // Spawn floating hearts
       for (let i = 0; i < 5; i++) {
         const heart = document.createElement('div');
-        heart.textContent = '💖';
+        heart.textContent = '💚';
         heart.style.position = 'absolute';
         const hX = envelope.getBoundingClientRect().left + Math.random() * envelope.offsetWidth;
         heart.style.left = hX + 'px';
